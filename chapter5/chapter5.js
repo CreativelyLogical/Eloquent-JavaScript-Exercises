@@ -70,19 +70,104 @@ var ancestry = JSON.parse(ANCESTRY_FILE)
 
 var ages = [];
 
-ancestry.forEach(function(person) {
+// Finds the average of all elements in an array
+var average = function(arr) {
+  var sum = arr.reduce(function(a, b) {
+    return a + b;
+  });
+  return sum / arr.length;
+}
+
+var motherChildAgeDiff = function(ancestry) {
+  ancestry.forEach(function(person) {
     var personAge = person.born;
-	//console.log('person: ' + person.name + ' was born on: ' + personAge);
+  //console.log('person: ' + person.name + ' was born on: ' + personAge);
     var personMother = person.mother;
     var motherInfo = ancestry.filter(function(mother) {
-		return mother.name == personMother;
+      return mother.name == personMother;
     });
-	var motherAge = 0;
-	if (motherInfo.length != 0)
-		motherAge = motherInfo[0].born;
-	else
-		return
-	var ageDiff = Math.abs(motherAge - personAge);
-	ages.push(ageDiff);
-	console.log('The person %s is born on %d and the mother %s is born on %d', person.name, personAge, personMother, motherAge);
-});
+
+    var motherAge = 0;
+    if (motherInfo.length != 0)
+      motherAge = motherInfo[0].born;
+    else
+      return
+    ageDiff = Math.abs(motherAge - personAge);
+    ages.push(ageDiff);
+    console.log('The person %s is born on %d and the mother %s is born on %d', person.name, personAge, personMother, motherAge);
+    // console.log('The average mother-child age difference is %d years', average(ageDiff));
+    
+  });  
+  // console.log('The average mother-child age difference is %d', average(ages))
+  return average(ages);
+}
+
+
+/*
+Exercise: Historical Life Expectancy
+Goal: To group the life expectancy of the people in the data set by centuries
+*/
+
+// Helper function, to determine if there already exists an object for a particular century
+var centuryExists = function(century, arrOfCenturies) {
+  var centuryExists = false;
+  for (var centuryObj of arrOfCenturies) {
+    if (centuryObj.deathCentury == century) {
+      return centuryObj;
+    }
+  }
+  return centuryExists;
+}
+
+var lifeExpectancy = function(ancestry) {
+
+  var arrOfCenturies = [];
+
+  ancestry.forEach(function(person) {
+    personBorn = person.born;
+    personDeath = person.died;
+    century = Math.ceil(personDeath / 100);
+    // console.log('This person died in the %dth century in %d', century, personDeath);
+    if (arrOfCenturies.length == 0) {
+      var object = {
+        ages: [],
+        deathCentury: null
+      };
+      object.ages.push(personDeath - personBorn)
+      object.deathCentury = century;
+      arrOfCenturies.push(object);
+    }
+    else {
+      if (!centuryExists(century, arrOfCenturies)) {
+        var object = {
+          ages: [],
+          deathCentury: null
+        };
+        object.ages.push(personDeath - personBorn)
+        object.deathCentury = century;
+        arrOfCenturies.push(object);
+      } else {
+        centuryExists(century, arrOfCenturies).ages.push(personDeath - personBorn);
+      }
+    }
+  });
+
+  // Sorting them by centuries
+  arrOfCenturies.sort(function(a, b) {
+    return a.deathCentury - b.deathCentury;
+  })
+
+  // add an average(avg) property to each object in the array
+  arrOfCenturies.forEach(function(person) {
+    person.avg = Math.round(person.ages.reduce(function(a, b) {
+      return a + b;
+    }) / person.ages.length, 1);
+  });
+
+  // Display the data, showing each century with their average life expectancy
+
+  arrOfCenturies.forEach(function(person) {
+    console.log('The life expectancy in the %dth century was %d years old', person.deathCentury, person.avg);
+  })
+}
+
