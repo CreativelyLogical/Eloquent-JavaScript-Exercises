@@ -15,6 +15,7 @@ TextCell.prototype.minWidth = function() {
 
 
 TextCell.prototype.minHeight = function() {
+    console.log(3);
     return this.text.length;
 }
 
@@ -22,7 +23,7 @@ TextCell.prototype.minHeight = function() {
 TextCell.prototype.draw = function(width, height) {
     var result = [];
     for (var i = 0; i < height; i++) {
-        console.log('this.text is ' + this.text);
+        // console.log('this.text is ' + this.text);
         var line = this.text[i] || "";
         result.push(line + repeat(" ", width - line.length));
     }
@@ -45,6 +46,7 @@ function rowHeights(rows) {
     return rows.map(function(row) {
         return row.reduce(function(max, cell) {
             // console.log(cell);
+            console.log(1)
             return Math.max(max, cell.minHeight());
         }, 0)
     });
@@ -58,7 +60,7 @@ function colWidths(rows) {
     });
 }
 
-function drawTable(row) {
+function drawTable(rows) {
     var heights = rowHeights(rows);
     var widths = colWidths(rows);
 
@@ -68,7 +70,7 @@ function drawTable(row) {
     function drawLine(blocks, lineNo) {
         return blocks.map(function(block) {
             return block[lineNo];
-        }).join("");
+        }).join(" ");
     }
 
     function drawRow(row, rowNum) {
@@ -82,38 +84,95 @@ function drawTable(row) {
         for (var i = 0; i < blocks.length; i++) {
             string += blocks[i];
         }
-        console.log(string);
+        // console.log(string);
 
         var block0Map = blocks[0].map(function(_, lineNo) {
             var blockString = drawLine(blocks, lineNo);
-            console.log('blockString: ' + blockString);
+            // console.log('blockString: ' + blockString);
             return blockString;
         });
         block0Map = block0Map.join("\n");
-        console.log('block0Map: ' + block0Map);
+        // console.log('block0Map: ' + block0Map);
         return block0Map;
     }
 
     var final = rows.map(drawRow).join("\n");
-    console.log('final \n' + final);
+    // console.log('final \n' + final);
     return final;
     // return rows.map(drawRow).join("\n");
 }
 
-var rows = [];
 
-var dimension = 3
+/*
+Now creating the new cell type, the UnderlinedCell
+*/
+ function UnderlinedCell(inner) {
+    this.inner = inner;
+ };
 
-for (var i = 0; i < dimension; i++) {
-    var row = [];
-    for (var j = 0; j < dimension; j++) {
-        if ((j + i) % 2 == 0)
-            row.push(new TextCell("##"));
-        else
-            row.push(new TextCell("__"));
-    }
-    rows.push(row);
+UnderlinedCell.prototype.minWidth = function() {
+    return this.inner.minWidth();
+};
 
+UnderlinedCell.prototype.minHeight = function() {
+    console.log('2, ', this);
+    return this.inner.minHeight() + 1;
+};
+
+UnderlinedCell.prototype.draw = function(width, height) {
+    return this.inner.draw(width, height - 1).
+    concat([repeat("-", width)]);
+};
+
+
+
+// var rows = [];
+
+// // var dimension = Number(prompt('Enter the dimension of the table'));
+
+// for (var i = 0; i < dimension; i++) {
+//     var row = [];
+//     for (var j = 0; j < dimension; j++) {
+//         if ((j + i) % 2 == 0)
+//             row.push(new TextCell("##"));
+//         else
+//             row.push(new TextCell("__"));
+//     }
+//     rows.push(row);
+
+// }
+
+function dataTable(data) {
+    var keys = Object.keys(data[0]);
+    console.log("keys: " + keys);
+    var headers = keys.map(function(name) {
+        return new UnderlinedCell(new TextCell(name));
+    });
+
+    console.log(headers);
+
+    console.log(data.length);
+
+    var body = data.map(function(row) {
+        return keys.map(function(name) {
+            return new TextCell(String(row[name]));
+        });
+    });
+    console.log([headers].concat(body));
+    return [headers].concat(body);
 }
+
+
+
+var MOUNTAINS = [
+  {name: "Kilimanjaro", height: 5895, country: "Tanzania"},
+  {name: "Everest", height: 8848, country: "Nepal"},
+  {name: "Mount Fuji", height: 3776, country: "Japan"},
+  {name: "Mont Blanc", height: 4808, country: "Italy/France"},
+  {name: "Vaalserberg", height: 323, country: "Netherlands"},
+  {name: "Denali", height: 6168, country: "United States"},
+  {name: "Popocatepetl", height: 5465, country: "Mexico"}
+];
+
 // console.log(rows)
-console.log(drawTable(rows));
+console.log(drawTable(dataTable(MOUNTAINS)));

@@ -37,3 +37,131 @@ Object.defineProperty(Vector.prototype, "length", {
         return Math.sqrt(xDistance + yDistance);        
     }
 });
+
+
+/*
+Exercise: Another Cell
+Goal: Implement a cell type named StrechCell(inner, width, height) that conforms to the 
+table cell interface described earlier in the chapter. It should wrap another cell (like
+UnderlineCell does) and ensure that the resulting cell has AT LEAST the given width and height,
+even if the inner cell would naturally be smaller.
+*/
+
+function TextCell(text) {
+    this.text = text.split("\n");
+}
+
+// Setting up the methods of the TextCell constructor's prototype property,
+// which in turn allows all instances of TextCell to have access to the methods
+TextCell.prototype.minWidth = function() {
+    return this.text.reduce(function(width, line) {
+        return Math.max(width, line.length);
+    }, 0);
+};
+
+
+TextCell.prototype.minHeight = function() {
+    // console.log(3);
+    return this.text.length;
+}
+
+
+TextCell.prototype.draw = function(width, height) {
+    var result = [];
+    for (var i = 0; i < height; i++) {
+        // console.log('this.text is ' + this.text);
+        var line = this.text[i] || "";
+        result.push(line + repeat(" ", width - line.length));
+    }
+    return result;
+};
+
+
+function StretchCell(inner, width, height) {
+  this.inner = inner;
+  var widthDifference = width - inner.text[0].length;
+  this.inner.text[0] += repeat(" ", widthDifference);
+}
+
+StretchCell.prototype.minWidth = function() {
+  console.log('this.inner is', this.inner);
+  return this.inner.minWidth();
+};
+
+StretchCell.prototype.minHeight = function() {
+  return this.inner.minHeight();
+}
+
+StretchCell.prototype.draw = function(width, height) {
+  // body...
+  var result = [];
+  for (var i = 0; i < height; i++) {
+    var line = this.text[i] || "";
+    result.push(line + repeat(" ", width - line.length));
+  }
+  return result;
+};
+
+var data = [
+  [new TextCell('Hello'), new TextCell("Darkness"), new TextCell('My Old Friend')],
+  [new TextCell("I've come"), new TextCell('to talk with'), new TextCell('you again')],
+  [new TextCell('I dont'), new TextCell('hollahoop'), new TextCell('You know man')],
+];
+
+
+function repeat(string, times) {
+    
+    var result = "";
+    for (var i = 0; i < times; i++) {
+        result += string;
+    }
+    return result;
+}
+
+function rowHeight(rows) {
+  return rows.map(function(row) {
+    return row.reduce(function(max, cell) {
+      return Math.max(max, cell.minHeight());
+    }, 0);
+  });
+}
+
+function colWidth(rows) {
+  return rows[0].map(function(_, idx) {
+    return rows.reduce(function(max, row) {
+      return Math.max(max, row[idx].minWidth());
+    }, 0)
+  })
+}
+
+
+function drawTable(rows) {
+  var widths = colWidth(rows);
+  var heights = rowHeight(rows);
+  
+
+  function drawLine(blocks) {
+    return blocks.map(function(block) {
+      return block[0];
+    }).join(" ");
+  }
+
+
+  function drawRow(row, rowIndex) {
+    var blocks = row.map(function(cell, cellIndex) {
+      return cell.draw(widths[cellIndex], heights[rowIndex]);
+    });
+
+    var blockString = blocks[0].map(function(_) {
+      return drawLine(blocks);
+    });
+
+    return blockString;
+  }
+
+
+  return rows.map(drawRow).join("\n");
+}
+
+
+
