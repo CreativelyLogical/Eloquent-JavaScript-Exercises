@@ -54,6 +54,7 @@ function TextCell(text) {
 // Setting up the methods of the TextCell constructor's prototype property,
 // which in turn allows all instances of TextCell to have access to the methods
 TextCell.prototype.minWidth = function() {
+    console.log('here?');
     return this.text.reduce(function(width, line) {
         return Math.max(width, line.length);
     }, 0);
@@ -80,25 +81,31 @@ TextCell.prototype.draw = function(width, height) {
 function StretchCell(inner, width, height) {
   this.inner = inner;
   var widthDifference = width - inner.text[0].length;
-  this.inner.text[0] += repeat(" ", widthDifference);
+  this.text = (this.inner.text[0] + repeat(' ', widthDifference)).split("\n");
+  for (var i = 1; i < height; i++) {
+    this.text.push([repeat(" ", width)]);
+  }
 }
 
 StretchCell.prototype.minWidth = function() {
-  console.log('this.inner is', this.inner);
-  return this.inner.minWidth();
+  // console.log('this.inner is', this.inner);
+  return this.text.reduce(function(init, line) {
+    return Math.max(init, line.length);
+  }, 0)
 };
 
 StretchCell.prototype.minHeight = function() {
-  return this.inner.minHeight();
-}
+  return this.text.length;
+};
 
 StretchCell.prototype.draw = function(width, height) {
-  // body...
+  // body...\
   var result = [];
   for (var i = 0; i < height; i++) {
-    var line = this.text[i] || "";
+    var line = this.inner.text[i] || "";
     result.push(line + repeat(" ", width - line.length));
   }
+  console.log(result);
   return result;
 };
 
@@ -108,6 +115,11 @@ var data = [
   [new TextCell('I dont'), new TextCell('hollahoop'), new TextCell('You know man')],
 ];
 
+var stretchData = data.map(function(row) {
+    return row.map(function(cell) {
+        return new StretchCell(cell, 13, 2);
+    })
+});
 
 function repeat(string, times) {
     
@@ -138,11 +150,13 @@ function colWidth(rows) {
 function drawTable(rows) {
   var widths = colWidth(rows);
   var heights = rowHeight(rows);
+  console.log('widths is', widths);
+  console.log('heights is', heights);
   
 
-  function drawLine(blocks) {
+  function drawLine(blocks, lineNo) {
     return blocks.map(function(block) {
-      return block[0];
+      return block[lineNo];
     }).join(" ");
   }
 
@@ -151,17 +165,63 @@ function drawTable(rows) {
     var blocks = row.map(function(cell, cellIndex) {
       return cell.draw(widths[cellIndex], heights[rowIndex]);
     });
+    console.log('blocks[0] is', blocks[0]);
 
-    var blockString = blocks[0].map(function(_) {
-      return drawLine(blocks);
+    var blockString = blocks[0].map(function(_, lineNo) {
+      return drawLine(blocks, lineNo);
     });
 
-    return blockString;
+    return blockString.join("\n");
   }
-
 
   return rows.map(drawRow).join("\n");
 }
+
+
+
+/*
+Exercise: Sequence Interface
+Goal: Create an interface that abstracts iteration over a collection of values.
+      Using an object to represent the interface, the interface must somehow make it
+      possible for code that uses the object to iterate over the sequence.
+*/
+
+function SequenceInterface(list) {
+  this.list = list;
+  this.getListLength = function() {
+    return list.length;
+  }
+
+  this.iterate = function() {
+    list.forEach(function(elt) {
+      console.log(elt);
+    })
+  }
+
+  this.logFive = function() {
+    if (list.length >=   5) {
+      for (var i = 0; i < 5; i++) {
+        console.log(list[i]);
+      }
+    } 
+    else {
+      for (var i = 0; i < list.length; i++) {
+        console.log(list[i]);
+      }
+    }
+  }
+
+
+}
+
+
+
+
+
+
+
+
+
 
 
 
